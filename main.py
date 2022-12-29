@@ -27,7 +27,7 @@ class Player():
         self.counter=0
         for num in range(1,7): #do ile mamy animacje
             img_right = pygame.image.load(f'img/player{num}.png')
-            img_right = pygame.transform.scale(img_right,(tile_size,tile_size))
+            img_right = pygame.transform.scale(img_right,(35,35))
             img_left= pygame.transform.flip(img_right,True,False)
             self.images_right.append(img_right)
             self.images_left.append(img_left)
@@ -101,7 +101,6 @@ class Player():
                 if self.jump:
                     self.image=self.images_jump_left[self.index]
                     '''
-
 
         self.vel_y+=1
         if self.vel_y>10:
