@@ -135,6 +135,7 @@ class Player():
             self.vel_y=0
 
 
+        #xd
 
 
         screen.blit(self.image,self.rect)
