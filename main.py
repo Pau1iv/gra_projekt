@@ -148,6 +148,7 @@ class Player():
 
         screen.blit(self.image,self.rect)
         return game_over
+    #dzialak
 
 
 class World():
