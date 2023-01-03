@@ -192,8 +192,8 @@ class World():
 class Enemy(pygame.sprite.Sprite):
     def __init__(self,x,y):
         pygame.sprite.Sprite.__init__(self)
-        self.image= pygame.image.load('img/monster_img.png')
-        self.image= pygame.transform.scale(self.image,(tile_size-10,tile_size-10))
+        self.image= pygame.image.load('img/ghost.png')
+        self.image= pygame.transform.scale(self.image,(tile_size-5,tile_size-5))
         self.rect=self.image.get_rect()
         self.rect.x=x
         self.rect.y=y+10
