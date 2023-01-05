@@ -1,9 +1,9 @@
 import pygame
-#from player import *
+from pygame import mixer
 from pygame.locals import *
 
 pygame.init()
-
+game_over=0
 clock=pygame.time.Clock()
 fps=60
 
@@ -12,11 +12,17 @@ tile_size=40
 scr_width=600 #15
 scr_height=400 #10
 screen = pygame.display.set_mode((scr_width,scr_height))
-pygame.display.set_caption('SUPER GRA')
+pygame.display.set_caption('Little Kinght Journay')
 
+#TODO BackGround
 bg_img = pygame.image.load('img/bg_img.png')
 bg_img = pygame.transform.scale(bg_img,(scr_width,scr_height))
-game_over=0
+
+# TODO BAckground music
+mixer.music.load('img/backgroundmusic.wav')
+mixer.music.play(-1)
+
+#TODO rysowanie gracza dodawanie animacji ruchu
 class Player():
     def __init__(self,x,y):
         self.images_right = []
@@ -51,11 +57,11 @@ class Player():
         self.jump=False
         self.direction=0
 
+    #TODO działanie całej mapy na podstawie tego czy nie została napotkana kolziaj z enemy
     def update(self,game_over):
         dx=0
         dy=0
         walk_cooldown = 10
-
         if game_over==0:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_LEFT]:
@@ -125,10 +131,14 @@ class Player():
                     self.index = 0
 
             if pygame.sprite.spritecollide(self, monster_group, False):
+                mixer.music.load('img/stomp.wav')
+                mixer.music.play(1)
                 game_over = -1
                 print(game_over)
 
             if pygame.sprite.spritecollide(self, lava_group, False):
+                mixer.music.load('img/stomp.wav')
+                mixer.music.play(1)
                 game_over = -1
                 print(game_over)
 
@@ -151,17 +161,16 @@ class Player():
     #dzialak
 
 
+# ToDO rysowanie struktur na podstawie cyfry przypisanej do danej instancji
 class World():
     def __init__(self,map):
         platform_img = pygame.image.load('img/platform_img.png')
-        door_img=pygame.image.load('img/door_img.png')
         self.tile_list=[]
-
         height=0
         for row in map:
             column=0
             for el in row:
-                if el == 1: #blocks
+                if el == 1: #ToDO blocks
                     img = pygame.transform.scale(platform_img,(tile_size,tile_size))
                     img_rect = img.get_rect()
                     img_rect.x=column*tile_size
@@ -171,13 +180,14 @@ class World():
                 if el == 3: #lava
                     lava = Lava(column * tile_size, height * tile_size+tile_size//2)
                     lava_group.add(lava)
-                if el == 2: #end
-                    img = pygame.transform.scale(door_img,(tile_size,tile_size))
-                    img_rect = img.get_rect()
-                    img_rect.x=column*tile_size
-                    img_rect.y=height*tile_size
-                    tile=(img,img_rect)
-                    self.tile_list.append(tile)
+                # TODO - Dodać drzwi oraz przejscie
+               # if el == 2: #end
+                 #   img = pygame.transform.scale(door_img,(tile_size,tile_size))
+                  #  img_rect = img.get_rect()
+                 #   img_rect.x=column*tile_size
+                  #  img_rect.y=height*tile_size
+                  #  tile=(img,img_rect)
+                 #   self.tile_list.append(tile)
                 if el == 6: #enemy
                     monster = Enemy(column*tile_size,height*tile_size)
                     monster_group.add(monster)
@@ -189,6 +199,7 @@ class World():
         for tile in self.tile_list:
             screen.blit(tile[0],tile[1])
 
+#ToDO Dodanie przeciwników oraz ich poruszanie się
 class Enemy(pygame.sprite.Sprite):
     def __init__(self,x,y):
         pygame.sprite.Sprite.__init__(self)
@@ -207,6 +218,7 @@ class Enemy(pygame.sprite.Sprite):
             self.direction*=-1
             self.counter=0
             self.image=pygame.transform.flip(self.image,True,False)
+#ToDO Dodanie lawy
 class Lava(pygame.sprite.Sprite):
     def __init__(self,x,y):
         pygame.sprite.Sprite.__init__(self)
@@ -216,7 +228,7 @@ class Lava(pygame.sprite.Sprite):
         self.rect.x=x
         self.rect.y=y
 
-
+#Todo Przypisanie instancji do danej cyfry szkielet mapy
 E=2 #END
 X=1 #PLATFORM
 L=3 #LAVA
@@ -235,13 +247,14 @@ world_data = [
 [S,0,0,0,0,0,0,0,0,0,0,0,0,X,X],
 [X,X,X,X,X,X,X,X,X,L,L,X,X,X,X]
 ]
+
+# TODO Rysowanie oraz działanie całej mapy "Main Funckja" \/
 player=Player(0,320)
 monster_group=pygame.sprite.Group()
 lava_group=pygame.sprite.Group()
 world=World(world_data)
 while True:
     clock.tick(fps)
-
     screen.blit(bg_img,(0,0))
     for event in pygame.event.get():
         if event.type==pygame.QUIT:
