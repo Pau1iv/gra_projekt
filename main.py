@@ -8,9 +8,9 @@ clock=pygame.time.Clock()
 fps=60
 
 #40x40
-tile_size=40
-scr_width=600 #15
-scr_height=400 #10
+tile_size=60
+scr_width=900 #15
+scr_height=600 #10
 screen = pygame.display.set_mode((scr_width,scr_height))
 pygame.display.set_caption('Little Kinght Journay')
 
@@ -32,21 +32,13 @@ class Player():
         self.index=0
         self.counter=0
         self.dead_image = pygame.image.load(f'img/grave.png')
-        self.dead_image = pygame.transform.scale(self.dead_image, (35, 35))
+        self.dead_image = pygame.transform.scale(self.dead_image, (50,50))
         for num in range(1,7): #do ile mamy animacje
             img_right = pygame.image.load(f'img/player{num}.png')
-            img_right = pygame.transform.scale(img_right,(35,35))
+            img_right = pygame.transform.scale(img_right,(50,50))
             img_left= pygame.transform.flip(img_right,True,False)
             self.images_right.append(img_right)
             self.images_left.append(img_left)
-            ''' 6 animacji jak do chodzenia
-            if num<4:
-                img_jump_right=pygame.image.load(f'img/player_jump{num}.png')
-                img_jump_right=pygame.transform.scale(img_jump_right,(tile_size,tile_size))
-                self.images_jump_right.append(img_jump_right)
-                img_jump_left= pygame.transform.flip(img_jump_right,True,False)
-                self.images_jump_left.append(img_jump_left)
-                 '''
         self.image = self.images_right[self.index]
         self.rect=self.image.get_rect()
         self.rect.x=x
@@ -81,14 +73,8 @@ class Player():
                     self.image = self.images_left[self.index]
             if keys[pygame.K_SPACE] and self.jump == False:
                 # self.counter+=1
-                self.vel_y = -10
+                self.vel_y = -12
                 self.jump = True
-                ''' tego nie
-                if self.direction==1:
-                    self.image=self.images_jump_right[self.index]
-                if self.direction ==-1:
-                    self.image=self.images_jump_left[self.index]
-                '''
             if keys[pygame.K_SPACE] == False:
                 self.jump = False
 
@@ -99,16 +85,8 @@ class Player():
                     self.index = 0
                 if self.direction == 1:
                     self.image = self.images_right[self.index]
-                    '''
-                    if self.jump:
-                        self.image=self.images_jump_right[self.index]
-                        '''
                 if self.direction == -1:
                     self.image = self.images_left[self.index]
-                    '''
-                    if self.jump:
-                        self.image=self.images_jump_left[self.index]
-                        '''
 
             self.vel_y += 1
             if self.vel_y > 10:
@@ -189,7 +167,7 @@ class World():
                   #  tile=(img,img_rect)
                  #   self.tile_list.append(tile)
                 if el == 6: #enemy
-                    monster = Enemy(column*tile_size,height*tile_size)
+                    monster = Enemy(column*tile_size,height*tile_size+5)
                     monster_group.add(monster)
 
                 column += 1
@@ -203,11 +181,11 @@ class World():
 class Enemy(pygame.sprite.Sprite):
     def __init__(self,x,y):
         pygame.sprite.Sprite.__init__(self)
-        self.image= pygame.image.load('img/ghost.png')
-        self.image= pygame.transform.scale(self.image,(tile_size-5,tile_size-5))
+        self.image= pygame.image.load('img/ghostperfect.png')
+        self.image= pygame.transform.scale(self.image,(tile_size-30,tile_size-30))
         self.rect=self.image.get_rect()
         self.rect.x=x
-        self.rect.y=y+10
+        self.rect.y=y+15
         self.direction=1
         self.counter=0
     def update(self):
@@ -249,7 +227,7 @@ world_data = [
 ]
 
 # TODO Rysowanie oraz działanie całej mapy "Main Funckja" \/
-player=Player(0,320)
+player=Player(0,520)
 monster_group=pygame.sprite.Group()
 lava_group=pygame.sprite.Group()
 world=World(world_data)
