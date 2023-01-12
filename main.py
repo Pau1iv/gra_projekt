@@ -14,15 +14,35 @@ scr_height=600 #10
 screen = pygame.display.set_mode((scr_width,scr_height))
 pygame.display.set_caption('Little Kinght Journay')
 
+
+
 #TODO BackGround/Images
 bg_img = pygame.image.load('img/bg_img.png')
 bg_img = pygame.transform.scale(bg_img,(scr_width,scr_height))
 restart_img=pygame.image.load('img/restart.png')
 restart_img=pygame.transform.scale(restart_img,(50,50))
 
-# TODO BAckground music
-mixer.music.load('img/backgroundmusic.wav')
-mixer.music.play(-1)
+
+#TODO RYSOWANIE LICZNIKA
+font_score=pygame.font.SysFont('Bauhaus 93',30)
+white=(255,255,255)
+def drawCoinCounter(text,font,text_col,x,y):
+    img=font.render(text,True,text_col)
+    screen.blit(img,(x,y))
+
+#TODO MUSIC EFFECT AND BG
+pygame.mixer.pre_init(44100,-16,2,512)
+mixer.init()
+pygame.init()
+
+pygame.mixer.music.load("img/backgroundmusic.wav")
+pygame.mixer.music.play(-1,0.0,5000)
+Colision=pygame.mixer.Sound("img/stomp.wav")
+Colision.set_volume(5)
+Jump=pygame.mixer.Sound("img/jump.wav")
+Jump.set_volume(5)
+coin=pygame.mixer.Sound("img/coin.wav")
+coin.set_volume(5)
 
 class Button():
     def __init__(self,x,y,image):
@@ -106,9 +126,9 @@ class Player():
                 # self.counter+=1
                 self.vel_y = -12
                 self.jump = True
+                Jump.play()
             if keys[pygame.K_SPACE] == False:
                 self.jump = False
-
             if self.counter > walk_cooldown:
                 self.counter = 0
                 self.index += 1
@@ -144,14 +164,12 @@ class Player():
 
             #kolizja smierc
             if pygame.sprite.spritecollide(self, monster_group, False):
-                mixer.music.load('img/stomp.wav')
-                mixer.music.play(1)
+                Colision.play()
                 game_over = -1
                 print(game_over)
 
             if pygame.sprite.spritecollide(self, lava_group, False):
-                mixer.music.load('img/stomp.wav')
-                mixer.music.play(1)
+                Colision.play()
                 game_over = -1
                 print(game_over)
 
@@ -205,6 +223,12 @@ class World():
                     monster = Enemy(column*tile_size,height*tile_size+5)
                     monster_group.add(monster)
 
+                if el == 7:  # coin
+                    score_coin = Coin(tile_size - 50, tile_size - 60)
+                    coin = Coin(column * tile_size, height * tile_size + 10)
+                    coin_group.add(coin)
+                    coin_group.add(score_coin)
+
                 column += 1
             height += 1
 
@@ -241,6 +265,32 @@ class Lava(pygame.sprite.Sprite):
         self.rect.x=x
         self.rect.y=y
 
+#ToDO Dodanie Waluty
+class Coin(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        pygame.sprite.Sprite.__init__(self)
+        self.counter=0
+        self.index = 0
+        self.Animation = []
+        for num in range(0, 4):
+            image = pygame.image.load(f'img/coin{num}.png')
+            image = pygame.transform.scale(image, (40, 40))
+            self.Animation.append(image)
+        self.image = self.Animation[self.index]
+        self.rect=self.image.get_rect()
+        self.rect.x=x
+        self.rect.y=y
+
+    def update(self):
+        self.counter+=1
+        walk_cooldown = 10
+        if self.counter > walk_cooldown:
+           self.index+=1
+           self.counter=0
+        if self.index >= len(self.Animation):
+            self.index = 0
+        self.image = self.Animation[self.index]
+
 #Todo Przypisanie instancji do danej cyfry szkielet mapy
 E=2 #END
 X=1 #PLATFORM
@@ -248,16 +298,17 @@ L=3 #LAVA
 #P=4 #MOVING_PLATFORM
 M=6 #monster
 S=5 #START
+C=7#COIN
 world_data = [
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
 [0,0,0,0,0,0,0,0,0,0,M,0,0,E,X],
-[0,0,0,0,0,M,0,0,0,X,X,X,X,X,X],
+[0,0,0,C,0,M,0,0,0,X,X,X,X,X,X],
 [0,0,0,X,0,X,X,X,0,0,0,0,0,0,0],
 [X,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[X,X,0,0,0,0,0,0,0,0,0,0,0,0,0],
-[X,X,L,L,X,L,L,X,X,X,X,0,0,0,0],
+[X,X,0,0,0,0,0,C,0,0,0,0,0,0,0],
+[X,X,L,L,X,L,L,X,X,X,X,0,0,0,C],
 [X,X,X,X,X,X,X,X,0,0,0,X,0,0,X],
-[S,0,0,0,0,0,0,0,0,0,0,0,0,X,X],
+[S,0,0,0,0,C,0,0,0,0,0,0,0,X,X],
 [X,X,X,X,X,X,X,X,X,L,L,X,X,X,X]
 ]
 
@@ -265,8 +316,9 @@ world_data = [
 player=Player(0,520)
 monster_group=pygame.sprite.Group()
 lava_group=pygame.sprite.Group()
+coin_group=pygame.sprite.Group()
 world=World(world_data)
-
+money=0
 # przyciski
 restart_button = Button(10,10,restart_img)
 
@@ -279,15 +331,23 @@ while True:
             pygame.quit()
     world.draw()
     if game_over==0:
-        monster_group.update()
+            coin_group.update()
+            if pygame.sprite.spritecollide(player, coin_group, True):
+                coin.play()
+                money += 1
+                print(money)
+            drawCoinCounter('X ' + str(money), font_score, white, tile_size - 10, 5)
+            monster_group.update()
     monster_group.draw(screen)
     lava_group.update()
     lava_group.draw(screen)
+    coin_group.draw(screen)
     game_over=player.update(game_over)
     if game_over==-1: #zgon
         if restart_button.draw():
             player.reset(0,520)
             game_over=0
+            money=0
 
     pygame.display.update()
 
