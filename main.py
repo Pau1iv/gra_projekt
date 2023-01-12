@@ -270,7 +270,7 @@ world=World(world_data)
 # przyciski
 restart_button = Button(10,10,restart_img)
 
-
+#swiat
 while True:
     clock.tick(fps)
     screen.blit(bg_img,(0,0))
