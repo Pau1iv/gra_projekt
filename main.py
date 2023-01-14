@@ -14,13 +14,17 @@ scr_height=600 #10
 screen = pygame.display.set_mode((scr_width,scr_height))
 pygame.display.set_caption('Little Kinght Journay')
 
-
+main_menu=True
 
 #TODO BackGround/Images
 bg_img = pygame.image.load('img/bg_img.png')
 bg_img = pygame.transform.scale(bg_img,(scr_width,scr_height))
 restart_img=pygame.image.load('img/restart.png')
 restart_img=pygame.transform.scale(restart_img,(50,50))
+start_img=pygame.image.load('img/start_img.png')
+start_img=pygame.transform.scale(start_img,(100,100))
+exit_img=pygame.image.load('img/exit_img.png')
+exit_img=pygame.transform.scale(exit_img,(100,100))
 
 
 #TODO RYSOWANIE LICZNIKA
@@ -321,33 +325,42 @@ world=World(world_data)
 money=0
 # przyciski
 restart_button = Button(10,10,restart_img)
+start_button = Button(scr_width//2-100,scr_height//2-50,start_img)
+exit_button=Button(scr_width//2+100,scr_height//2-50,exit_img)
 
 #swiat
 while True:
     clock.tick(fps)
     screen.blit(bg_img,(0,0))
+
     for event in pygame.event.get():
         if event.type==pygame.QUIT:
             pygame.quit()
-    world.draw()
-    if game_over==0:
-            coin_group.update()
-            if pygame.sprite.spritecollide(player, coin_group, True):
-                coin.play()
-                money += 1
-                print(money)
-            drawCoinCounter('X ' + str(money), font_score, white, tile_size - 10, 5)
-            monster_group.update()
-    monster_group.draw(screen)
-    lava_group.update()
-    lava_group.draw(screen)
-    coin_group.draw(screen)
-    game_over=player.update(game_over)
-    if game_over==-1: #zgon
-        if restart_button.draw():
-            player.reset(0,520)
-            game_over=0
-            money=0
+    if main_menu:
+        if start_button.draw():
+            main_menu=False
+        if exit_button.draw():
+            pygame.quit()
+    else:
+        world.draw()
+        if game_over==0:
+                coin_group.update()
+                if pygame.sprite.spritecollide(player, coin_group, True):
+                    coin.play()
+                    money += 1
+                    print(money)
+                drawCoinCounter('X ' + str(money), font_score, white, tile_size - 10, 5)
+                monster_group.update()
+        monster_group.draw(screen)
+        lava_group.update()
+        lava_group.draw(screen)
+        coin_group.draw(screen)
+        game_over=player.update(game_over)
+        if game_over==-1: #zgon
+            if restart_button.draw():
+                player.reset(0,520)
+                game_over=0
+                money=0
 
     pygame.display.update()
 
