@@ -5,6 +5,7 @@ L=3 #LAVA
 M=6 #monster
 S=5 #START
 C=7#COIN
+W=8 #WIN
 
 level2=[
 [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],

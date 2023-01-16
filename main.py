@@ -1,8 +1,8 @@
 import pygame
 from pygame import mixer
-from pygame.locals import *
 from levels.level1 import *
 from levels.level2 import *
+from levels.level3 import *
 
 pygame.init()
 game_over=0
@@ -21,12 +21,17 @@ main_menu=True
 #TODO BackGround/Images
 bg_img = pygame.image.load('img/bg_img.png')
 bg_img = pygame.transform.scale(bg_img,(scr_width,scr_height))
-restart_img=pygame.image.load('img/restart.png')
-restart_img=pygame.transform.scale(restart_img,(50,50))
+restart_img=pygame.image.load('img/restart_button.png')
+restart_img=pygame.transform.scale(restart_img,(150,150))
 start_img=pygame.image.load('img/strat_button.png')
 start_img=pygame.transform.scale(start_img,(200,200))
 exit_img=pygame.image.load('img/exit_button.png')
 exit_img=pygame.transform.scale(exit_img,(200,200))
+przegrana_img=pygame.image.load('img/przegrana.png')
+przegrana_img=pygame.transform.scale(przegrana_img,(200,200))
+zwyciestwo_img=pygame.image.load('img/zwyciestwo.png')
+zwyciestwo_img=pygame.transform.scale(zwyciestwo_img,(200,200))
+
 
 
 #TODO RYSOWANIE LICZNIKA
@@ -49,6 +54,8 @@ Jump=pygame.mixer.Sound("img/jump.wav")
 Jump.set_volume(5)
 coin=pygame.mixer.Sound("img/coin.wav")
 coin.set_volume(5)
+win=pygame.mixer.Sound("img/winmusic.wav")
+win.set_volume(5)
 
 def  reset_level(level):
     player.reset(0,520)
@@ -56,8 +63,9 @@ def  reset_level(level):
     lava_group.empty()
     exit_group.empty()
     coin_group.empty()
+    win_group.empty()
 
-    list = [level1, level2]
+    list = [level1, level2,level3]
     world_data = list[current_level]
     world = World(world_data)
     return world
@@ -186,19 +194,22 @@ class Player():
                 Colision.play()
                 game_over = -1
 
-                print(game_over)
-
             if pygame.sprite.spritecollide(self, lava_group, False):
                 Colision.play()
                 game_over = -1
-                print(game_over)
 
             #kolizja nastepny poziom
 
             if pygame.sprite.spritecollide(self, exit_group, False):
                 game_over = 1
 
-                print(game_over)
+            #kolizja zwyciestwo
+
+            if pygame.sprite.spritecollide(self, win_group, False):
+                game_over = 2
+
+                win.play()
+
 
             self.rect.x += dx
             self.rect.y += dy
@@ -243,22 +254,21 @@ class World():
                     lava = Lava(column * tile_size, height * tile_size+tile_size//2)
                     lava_group.add(lava)
                 # TODO - Dodać drzwi oraz przejscie
-               # if el == 2: #end
-                 #   img = pygame.transform.scale(door_img,(tile_size,tile_size))
-                  #  img_rect = img.get_rect()
-                 #   img_rect.x=column*tile_size
-                  #  img_rect.y=height*tile_size
-                  #  tile=(img,img_rect)
-                 #   self.tile_list.append(tile)
+
                 if el == 6: #enemy
                     monster = Enemy(column*tile_size,height*tile_size+5)
                     monster_group.add(monster)
+
+                if el == 8: #enemy
+                    win = Win(column*tile_size,height*tile_size+5)
+                    win_group.add(win)
 
                 if el == 7:  # coin
                     score_coin = Coin(tile_size - 50, tile_size - 60)
                     coin = Coin(column * tile_size, height * tile_size + 10)
                     coin_group.add(coin)
                     coin_group.add(score_coin)
+
 
                 column += 1
             height += 1
@@ -305,6 +315,15 @@ class Exit(pygame.sprite.Sprite):
         self.rect.x=x
         self.rect.y=y
 
+class Win(pygame.sprite.Sprite):
+    def __init__(self,x,y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image=pygame.image.load('img/win_picture.png')
+        self.image= pygame.transform.scale(self.image,(tile_size,tile_size))
+        self.rect=self.image.get_rect()
+        self.rect.x=x
+        self.rect.y=y
+
 #ToDO Dodanie Waluty
 class Coin(pygame.sprite.Sprite):
     def __init__(self,x,y):
@@ -338,15 +357,16 @@ monster_group=pygame.sprite.Group()
 lava_group=pygame.sprite.Group()
 exit_group=pygame.sprite.Group()
 coin_group=pygame.sprite.Group()
+win_group=pygame.sprite.Group()
 
-list=[level1,level2]
+list=[level1,level2,level3]
 current_level=0
 world_data =list[current_level]
 world=World(world_data)
 
 money=0
 # przyciski
-restart_button = Button(10,10,restart_img)
+restart_button = Button(0,490,restart_img)
 start_button = Button(scr_width//2-220,scr_height//2-100,start_img)
 exit_button=Button(scr_width//2+20,scr_height//2-100,exit_img)
 
@@ -370,7 +390,7 @@ while True:
                 if pygame.sprite.spritecollide(player, coin_group, True):
                     coin.play()
                     money += 1
-                    print(money)
+
                 drawCoinCounter('X ' + str(money), font_score, white, tile_size - 10, 5)
                 monster_group.update()
         monster_group.draw(screen)
@@ -380,7 +400,10 @@ while True:
         lava_group.draw(screen)
         coin_group.draw(screen)
         game_over=player.update(game_over)
+        win_group.update()
+        win_group.draw(screen)
         if game_over==-1: #zgon
+            screen.blit(przegrana_img,(scr_width//2-100,scr_height//2-100))
             if restart_button.draw():
                 world_data = []
                 current_level = 0
@@ -389,12 +412,12 @@ while True:
                 money=0
         if game_over == 1:
             current_level+=1
-            if current_level<=3:
+            if current_level<=4:
                 world_data=[]
                 world=reset_level(current_level)
                 game_over=0
-
-
+        if game_over==2:
+            screen.blit(zwyciestwo_img, (scr_width // 2 - 100, scr_height // 2 - 100))
 
     pygame.display.update()
 
